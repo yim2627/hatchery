@@ -37,10 +37,7 @@ Hatchery는 이 네 가지를 자동화한다.
 ## 설치
 
 ```bash
-# 로컬 클론 후 글로벌 등록
-git clone https://github.com/yim2627/hatchery.git
-cd hatchery
-npm install && npm run build && npm link
+npm install -g @limjiseong/hatchery
 ```
 
 ## 사용법

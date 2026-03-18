@@ -1,5 +1,5 @@
 {
-  "name": "hatchery",
+  "name": "@limjiseong/hatchery",
   "version": "0.1.0",
   "description": "Multi-platform AI agent harness generator. Analyze codebases, detect platforms, generate rules and workflows for AI agents.",
   "type": "module",
