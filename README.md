@@ -34,21 +34,30 @@ Hatchery는 이 네 가지를 자동화한다.
 **이력을 남긴다.**
 어떤 작업을 시켰고, 뭐가 바뀌었는지 기록해서 다음 세션의 컨텍스트로 넘길 수 있다.
 
+## 설치
+
+```bash
+# 로컬 클론 후 글로벌 등록
+git clone https://github.com/yim2627/hatchery.git
+cd hatchery
+npm install && npm run build && npm link
+```
+
 ## 사용법
 
 ```bash
 # 프로젝트 분석만 (결과 확인)
-npx hatchery analyze
+hatchery analyze --target /path/to/project
 
 # 온보딩 (분석 → CLAUDE.md + 스킬 문서 생성)
-npx hatchery onboard
+hatchery onboard --target /path/to/project
 
 # 동적 컨텍스트 재생성
-hatchery render --workflow add-feature
-hatchery render --since HEAD~3 --max-tokens 4000
+hatchery render --target /path/to/project --workflow add-feature
+hatchery render --target /path/to/project --max-tokens 4000
 
 # 규칙 준수 검증
-hatchery audit --since HEAD~1
+hatchery audit --target /path/to/project --since HEAD~1
 
 # 작업 기록
 hatchery journal log "로그인 기능 추가"
@@ -76,7 +85,7 @@ CLAUDE.md                        ← Claude Code 진입점
 |---|---|
 | 플랫폼 | iOS, React, Next.js, Vue, Expo |
 | 모노레포 | pnpm / yarn / npm workspaces |
-| 아키텍처 | MVVM, Clean Architecture, TCA, Feature-based |
+| 아키텍처 | MVVM, Clean Architecture (부분 매칭 포함), TCA |
 | 의존성 | 네트워킹, UI, 테스트, DI, 스토리지별 분류 |
 | 테스트 | 프레임워크, 파일 수, 커버리지 추정 |
 | 권한 | 카메라, 위치, HealthKit 등 |
