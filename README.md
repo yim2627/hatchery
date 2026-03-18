@@ -62,6 +62,8 @@ hatchery sync --target /path/to/project
 
 파일을 생성하지 않고 분석 결과만 출력한다. 온보딩 전 확인용.
 
+> 시나리오: 새 프로젝트를 인수받았다. 온보딩 전에 Hatchery가 뭘 감지하는지 먼저 확인하고 싶다.
+
 ```bash
 hatchery analyze --target /path/to/project
 ```
@@ -77,6 +79,8 @@ hatchery analyze --target /path/to/project
 ### `onboard` — 온보딩
 
 프로젝트를 분석하고 `CLAUDE.md`, 스킬 문서, 워크플로를 생성한다.
+
+> 시나리오: 프로젝트에 처음 Hatchery를 적용한다. 실행하면 `CLAUDE.md`와 `.hatchery/` 디렉토리가 생성되고, Claude Code가 바로 프로젝트 규칙을 이해할 수 있게 된다.
 
 ```bash
 hatchery onboard --target /path/to/project
@@ -98,7 +102,8 @@ hatchery onboard --target /path/to/project --non-interactive --force
 ### `sync` — 설정 동기화
 
 프로젝트를 재분석하여 `config.json`만 갱신한다. 스킬, 워크플로, `CLAUDE.md`는 건드리지 않는다.
-코드가 변경된 후 분석 결과를 최신 상태로 유지할 때 사용한다.
+
+> 시나리오: CoreData에서 SwiftData로 마이그레이션했다. `sync`를 실행하면 `persistence_layer_name`이 자동으로 업데이트되고, 이후 `render` 시 SwiftData 규칙이 적용된다.
 
 ```bash
 hatchery sync --target /path/to/project
@@ -121,6 +126,8 @@ hatchery sync --target /path/to/project --workspace apps/patient-app
 
 현재 상태와 작업 목적에 맞춰 에이전트 컨텍스트를 재생성한다.
 
+> 시나리오: Claude Code에게 "로그인 기능 추가해줘"라고 시키려 한다. `render --workflow add-feature`를 실행하면, add-feature 워크플로와 관련 스킬(architecture, networking 등)을 중심으로 최적화된 컨텍스트가 `.hatchery/context.md`에 생성된다. 토큰 예산 안에서 지금 작업에 필요한 규칙만 들어간다.
+
 ```bash
 hatchery render --target /path/to/project
 hatchery render --target /path/to/project --workflow add-feature
@@ -139,6 +146,8 @@ hatchery render --target /path/to/project --workspace apps/web
 ### `audit` — 규칙 준수 검증
 
 활성 스킬의 규칙을 기준으로 코드를 검사한다.
+
+> 시나리오: Claude Code가 새 화면 3개를 만들었다. `audit`을 실행하면 View에서 직접 네트워킹하는 코드, `@MainActor` 누락 등 프로젝트 규칙 위반을 자동으로 잡아준다. `--since HEAD~1`로 방금 커밋한 변경만 검사할 수도 있다.
 
 ```bash
 hatchery audit --target /path/to/project
@@ -200,6 +209,8 @@ hatchery workflow scaffold deploy monitoring --target /path/to/project
 ### `journal` — 작업 이력
 
 에이전트 작업 이력을 기록하고 다음 세션의 컨텍스트로 활용한다.
+
+> 시나리오: 오늘 Claude Code로 로그인 기능을 만들었다. `journal log`로 기록해두면, 내일 새 세션에서 `render --journal 3`으로 최근 작업 맥락을 컨텍스트에 포함시킬 수 있다. "어제 뭐 했더라?"를 에이전트가 알게 된다.
 
 ```bash
 # 작업 기록
