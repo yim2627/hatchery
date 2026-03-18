@@ -38,7 +38,7 @@ node dist/bin/hatchery.js render --target /path/to/ios-project --workflow add-fe
 - Android는 지원하지 않는다 (iOS + Web만).
 - 새 기능 추가 시 빌드 + 테스트 프로젝트 대상 실행으로 검증한다.
 
-## 현재 버전: v0.1.5
+## 현재 버전: v0.1.7
 
 자세한 이력은 CHANGELOG.md 참고.
 
