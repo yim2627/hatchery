@@ -84,6 +84,7 @@ export interface AnalysisResult {
   testing: TestingInfo;
   buildCommands: BuildCommands;
   frameworks: string[];
+  frameworkCounts: Record<string, number>;
   suggestedSkills: string[];
   suggestedProfile: ProfileName;
 }
@@ -128,6 +129,7 @@ export interface ProjectConfig {
   architecture_style: string;
   min_version: string;
   package_manager: string;
+  project_generator: string;
   test_framework: string;
   lint_tools: string;
   network_layer_name: string;

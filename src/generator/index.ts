@@ -137,6 +137,7 @@ function buildTemplateContext(
     ARCHITECTURE_STYLE: config.architecture_style,
     MIN_VERSION: config.min_version,
     PACKAGE_MANAGER: config.package_manager,
+    PROJECT_GENERATOR: config.project_generator,
     TEST_FRAMEWORK: config.test_framework,
     LINT_TOOLS: config.lint_tools,
     NETWORK_LAYER_NAME: config.network_layer_name,

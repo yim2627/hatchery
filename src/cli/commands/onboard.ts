@@ -114,6 +114,7 @@ function buildProjectConfig(analysis: any, platforms: PlatformId[], rootDir: str
     architecture_style: analysis.architecture.pattern,
     min_version: inferMinVersion(platforms, rootDir),
     package_manager: inferPackageManager(rootDir),
+    project_generator: inferProjectGenerator(rootDir),
     test_framework: analysis.testing.framework ?? "unknown",
     lint_tools: inferLintTools(rootDir),
     network_layer_name: inferNetworkLayer(analysis),
@@ -160,10 +161,20 @@ function inferProjectName(rootDir: string): string {
 function inferUIFramework(analysis: any, platforms: PlatformId[]): string {
   if (analysis.framework) return analysis.framework;
   if (platforms.includes("ios")) {
-    const frameworks = analysis.frameworks ?? [];
-    if (frameworks.includes("SwiftUI")) return "SwiftUI";
-    if (frameworks.includes("UIKit")) return "UIKit";
-    return "SwiftUI";
+    const counts: Record<string, number> = analysis.frameworkCounts ?? {};
+    const swiftUICount = counts["SwiftUI"] ?? 0;
+    const uiKitCount = counts["UIKit"] ?? 0;
+
+    if (swiftUICount === 0 && uiKitCount === 0) return "SwiftUI";
+    if (uiKitCount === 0) return "SwiftUI";
+    if (swiftUICount === 0) return "UIKit";
+
+    // 둘 다 있으면 비율로 판단
+    const total = swiftUICount + uiKitCount;
+    const swiftUIRatio = swiftUICount / total;
+    if (swiftUIRatio >= 0.7) return "SwiftUI";
+    if (swiftUIRatio <= 0.3) return "UIKit (SwiftUI 부분 적용)";
+    return "UIKit + SwiftUI (혼합)";
   }
   if (platforms.includes("nextjs")) return "Next.js";
   if (platforms.includes("react")) return "React";
@@ -215,6 +226,37 @@ function inferPackageManager(rootDir: string): string {
   if (hasXcodeproj) return "Xcode (SPM)";
 
   return "unknown";
+}
+
+function inferProjectGenerator(rootDir: string): string {
+  // Tuist: Project.swift 또는 Tuist/ 디렉토리
+  const hasTuist = fs.existsSync(path.join(rootDir, "Project.swift"))
+    || fs.existsSync(path.join(rootDir, "Tuist"))
+    || fg.sync("**/Project.swift", { cwd: rootDir, deep: 2 }).length > 0;
+  if (hasTuist) return "Tuist";
+
+  // XcodeGen: project.yml
+  const hasXcodeGen = fs.existsSync(path.join(rootDir, "project.yml"))
+    || fg.sync("**/project.yml", { cwd: rootDir, deep: 2 }).length > 0;
+  if (hasXcodeGen) return "XcodeGen";
+
+  // Bazel
+  if (fs.existsSync(path.join(rootDir, "BUILD")) || fs.existsSync(path.join(rootDir, "BUILD.bazel"))) return "Bazel";
+
+  // create-react-app, Vite, etc.
+  if (fs.existsSync(path.join(rootDir, "vite.config.ts")) || fs.existsSync(path.join(rootDir, "vite.config.js"))) return "Vite";
+  if (fs.existsSync(path.join(rootDir, "next.config.js")) || fs.existsSync(path.join(rootDir, "next.config.mjs"))) return "Next.js";
+
+  // Xcode 기본
+  const hasXcodeproj = fg.sync("**/*.xcodeproj", {
+    cwd: rootDir,
+    deep: 2,
+    onlyDirectories: true,
+    ignore: ["Pods/**", ".build/**", "node_modules/**"],
+  }).length > 0;
+  if (hasXcodeproj) return "Xcode";
+
+  return "감지 안 됨";
 }
 
 function inferLintTools(rootDir: string): string {

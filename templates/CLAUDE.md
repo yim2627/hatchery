@@ -10,6 +10,7 @@
 - 로깅: {{LOGGING_SYSTEM}}
 - 테스트: {{TEST_FRAMEWORK}}
 - 패키지 매니저: {{PACKAGE_MANAGER}}
+- 프로젝트 생성: {{PROJECT_GENERATOR}}
 - 린트: {{LINT_TOOLS}}
 
 ## 디렉토리 구조

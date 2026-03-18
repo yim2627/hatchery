@@ -9,13 +9,15 @@ import type {
 } from "../types/index.js";
 
 export async function scanIosProject(rootDir: string) {
+  const frameworkDetection = await detectFrameworks(rootDir);
   return {
     architecture: await detectArchitecture(rootDir),
     dependencies: await detectDependencies(rootDir),
     testing: await detectTesting(rootDir),
     permissions: await detectPermissions(rootDir),
     buildCommands: detectBuildCommands(rootDir),
-    frameworks: await detectFrameworks(rootDir),
+    frameworks: frameworkDetection.names,
+    frameworkCounts: frameworkDetection.counts,
   };
 }
 
@@ -27,8 +29,8 @@ async function detectArchitecture(rootDir: string): Promise<ArchitectureGuess> {
   const dirs = await fg("**/*", {
     cwd: rootDir,
     onlyDirectories: true,
-    deep: 3,
-    ignore: ["node_modules/**", ".git/**", "Pods/**", ".build/**"],
+    deep: 5,
+    ignore: ["node_modules/**", ".git/**", "Pods/**", ".build/**", "Derived/**"],
   });
 
   const dirNames = new Set(dirs.map((d) => path.basename(d).toLowerCase()));
@@ -55,11 +57,16 @@ async function detectArchitecture(rootDir: string): Promise<ArchitectureGuess> {
   }
 
   // Clean Architecture signals
-  const cleanSignals = ["domain", "data", "presentation", "usecases", "usecase", "entities"];
+  const cleanSignals = [
+    "domain", "data", "presentation",
+    "usecases", "usecase", "usecasesimpl",
+    "entities", "entity",
+    "interfaces", "implements",
+  ];
   const cleanHits = cleanSignals.filter((s) => dirNames.has(s));
   if (cleanHits.length >= 3) {
     pattern = "Clean Architecture";
-    confidence = 0.7 + cleanHits.length * 0.05;
+    confidence = 0.7 + Math.min(cleanHits.length * 0.05, 0.25);
     signals.push(`Clean Architecture layers: ${cleanHits.join(", ")}`);
   } else if (cleanHits.length === 2 && pattern === "Unknown") {
     pattern = "Clean Architecture (partial)";
@@ -85,6 +92,24 @@ async function detectArchitecture(rootDir: string): Promise<ArchitectureGuess> {
       }
     } catch {
       // skip unreadable files
+    }
+  }
+
+  // ReactorKit signals
+  if (pattern !== "TCA (The Composable Architecture)") {
+    for (const file of swiftFiles.slice(0, 100)) {
+      try {
+        const content = fs.readFileSync(path.join(rootDir, file), "utf-8");
+        if (content.includes("import ReactorKit") || content.includes("ReactorKit.Reactor")) {
+          const base = pattern === "Unknown" ? "" : pattern + " + ";
+          pattern = `${base}ReactorKit`;
+          confidence = Math.max(confidence, 0.8);
+          signals.push(`ReactorKit found in ${file}`);
+          break;
+        }
+      } catch {
+        // skip
+      }
     }
   }
 
@@ -275,13 +300,16 @@ function getSubdirs(rootDir: string, depth: number): string[] {
   }
 }
 
-async function detectFrameworks(rootDir: string): Promise<string[]> {
-  const frameworks: string[] = [];
+interface FrameworkDetection {
+  names: string[];
+  counts: Record<string, number>;
+}
 
+async function detectFrameworks(rootDir: string): Promise<FrameworkDetection> {
   const swiftFiles = await fg("**/*.swift", {
     cwd: rootDir,
-    deep: 3,
-    ignore: ["Pods/**", ".build/**", "*Tests*/**"],
+    deep: 5,
+    ignore: ["Pods/**", ".build/**", "*Tests*/**", "Derived/**"],
   });
 
   const importCounts = new Map<string, number>();
@@ -296,9 +324,10 @@ async function detectFrameworks(rootDir: string): Promise<string[]> {
     "MapKit",
     "WidgetKit",
     "ActivityKit",
+    "ReactorKit",
   ]);
 
-  for (const file of swiftFiles.slice(0, 100)) {
+  for (const file of swiftFiles.slice(0, 300)) {
     try {
       const content = fs.readFileSync(path.join(rootDir, file), "utf-8");
       for (const fw of interestingImports) {
@@ -311,9 +340,12 @@ async function detectFrameworks(rootDir: string): Promise<string[]> {
     }
   }
 
-  for (const [fw] of importCounts) {
-    frameworks.push(fw);
+  const counts: Record<string, number> = {};
+  const names: string[] = [];
+  for (const [fw, count] of importCounts) {
+    names.push(fw);
+    counts[fw] = count;
   }
 
-  return frameworks;
+  return { names, counts };
 }

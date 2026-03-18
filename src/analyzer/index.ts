@@ -36,6 +36,7 @@ export async function analyzeProject(rootDir: string): Promise<AnalysisResult> {
     },
     buildCommands: scanResult.buildCommands ?? {},
     frameworks: scanResult.frameworks ?? [],
+    frameworkCounts: scanResult.frameworkCounts ?? {},
     suggestedSkills,
     suggestedProfile,
   };
