@@ -82,9 +82,12 @@ CLAUDE.md                        ← Claude Code 진입점
 |---|---|
 | 플랫폼 | iOS, React, Next.js, Vue, Expo |
 | 모노레포 | pnpm / yarn / npm workspaces |
-| 아키텍처 | MVVM, Clean Architecture (부분 매칭 포함), TCA |
+| 아키텍처 | MVVM, Clean Architecture (부분 매칭 포함), TCA, ReactorKit |
+| UI 프레임워크 | SwiftUI, UIKit, 혼합 비율 감지 (예: `UIKit (SwiftUI 부분 적용)`) |
+| 프로젝트 생성 | Tuist, XcodeGen, Bazel, Vite, Next.js, Xcode |
 | 의존성 | 네트워킹, UI, 테스트, DI, 스토리지별 분류 |
 | 테스트 | 프레임워크, 파일 수, 커버리지 추정 |
+| 저장소 | SwiftData, CoreData, Realm, GRDB 등 (퍼스트파티 포함) |
 | 권한 | 카메라, 위치, HealthKit 등 |
 | 빌드 | xcodebuild, swift build, npm run build 등 |
 
