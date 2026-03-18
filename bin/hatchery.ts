@@ -14,7 +14,7 @@ const program = new Command();
 program
   .name("hatchery")
   .description("멀티 플랫폼 AI 에이전트 하네스 생성기")
-  .version("0.1.0");
+  .version("0.1.6");
 
 registerOnboard(program);
 registerAnalyze(program);
