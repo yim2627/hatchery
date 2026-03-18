@@ -11,7 +11,7 @@ import type {
 } from "../types/index.js";
 import { renderTemplateFile, getTemplatesDir, getProfilesDir } from "./renderer.js";
 import { composeSkill } from "./skill-composer.js";
-import { buildContext } from "./context-builder.js";
+import { buildContext, buildWorkflowInline, buildSkillDescriptions } from "./context-builder.js";
 import { createInitialState, saveState } from "../state/index.js";
 
 
@@ -102,27 +102,6 @@ export function generate(opts: GenerateOptions): GenerateResult {
   return { state, filesCreated };
 }
 
-// 스킬별 한줄 설명 매핑
-const SKILL_DESC: Record<string, (ctx: TemplateContext) => string> = {
-  "architecture": (ctx) => `레이어 분리, 의존성 방향, ${ctx.ARCHITECTURE_STYLE} 패턴 유지`,
-  "ui-rules": (ctx) => `${ctx.UI_FRAMEWORK} 컴포넌트 규칙, Property Wrapper 선택`,
-  "concurrency": () => "async/await, actor 격리, 데드락 방지",
-  "networking": (ctx) => `${ctx.NETWORK_LAYER_NAME} 기반 API 설계, 에러 처리`,
-  "testing": (ctx) => `${ctx.TEST_FRAMEWORK} 테스트 전략, 모킹`,
-  "state-management": (ctx) => `${ctx.PERSISTENCE_LAYER_NAME} 사용 규칙, 전역 상태 관리`,
-  "accessibility": () => "접근성 규칙, VoiceOver, Dynamic Type",
-  "logging": (ctx) => `${ctx.LOGGING_SYSTEM} 로깅 전략, 구조화 로깅`,
-};
-
-// 워크플로별 트리거 조건 + 한줄 설명
-const WORKFLOW_DESC: Record<string, string> = {
-  "add-feature": "새 기능을 추가하거나 기존 플로우를 확장할 때. 도메인→데이터→UI 순서",
-  "fix-bug": "버그, 크래시, 회귀를 수정할 때. 재현→원인→수정→회귀 테스트",
-  "refactor": "동작 변경 없이 구조를 개선할 때",
-  "review": "코드 리뷰를 수행할 때. 아키텍처·보안·성능 관점",
-  "build": "빌드 실패를 해결하거나 배포할 때",
-  "verify": "테스트 실행 또는 규칙 준수를 확인할 때",
-};
 
 function buildTemplateContext(
   config: ProjectConfig,
@@ -156,17 +135,10 @@ function buildTemplateContext(
   };
 
   // 스킬 설명 생성
-  ctx.SKILL_DESCRIPTIONS = skills.map((s) => {
-    const descFn = SKILL_DESC[s];
-    const desc = descFn ? descFn(ctx) : s;
-    return `- \`.hatchery/skills/${s}.md\` — ${desc}`;
-  }).join("\n");
+  ctx.SKILL_DESCRIPTIONS = buildSkillDescriptions(skills, ctx);
 
-  // 워크플로 설명 생성
-  ctx.WORKFLOW_DESCRIPTIONS = workflows.map((w) => {
-    const desc = WORKFLOW_DESC[w] ?? w;
-    return `- \`.hatchery/workflows/${w}.md\` — ${desc}`;
-  }).join("\n");
+  // 워크플로 인라인 절차 생성
+  ctx.WORKFLOW_INLINE = buildWorkflowInline(workflows);
 
   return ctx;
 }
