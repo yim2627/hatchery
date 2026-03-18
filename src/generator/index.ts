@@ -13,7 +13,7 @@ import { renderTemplateFile, getTemplatesDir, getProfilesDir } from "./renderer.
 import { composeSkill } from "./skill-composer.js";
 import { buildContext } from "./context-builder.js";
 import { createInitialState, saveState } from "../state/index.js";
-import { generateDirectoryTree } from "../analyzer/scanners/shared.js";
+
 
 export interface GenerateOptions {
   rootDir: string;
@@ -102,6 +102,28 @@ export function generate(opts: GenerateOptions): GenerateResult {
   return { state, filesCreated };
 }
 
+// 스킬별 한줄 설명 매핑
+const SKILL_DESC: Record<string, (ctx: TemplateContext) => string> = {
+  "architecture": (ctx) => `레이어 분리, 의존성 방향, ${ctx.ARCHITECTURE_STYLE} 패턴 유지`,
+  "ui-rules": (ctx) => `${ctx.UI_FRAMEWORK} 컴포넌트 규칙, Property Wrapper 선택`,
+  "concurrency": () => "async/await, actor 격리, 데드락 방지",
+  "networking": (ctx) => `${ctx.NETWORK_LAYER_NAME} 기반 API 설계, 에러 처리`,
+  "testing": (ctx) => `${ctx.TEST_FRAMEWORK} 테스트 전략, 모킹`,
+  "state-management": (ctx) => `${ctx.PERSISTENCE_LAYER_NAME} 사용 규칙, 전역 상태 관리`,
+  "accessibility": () => "접근성 규칙, VoiceOver, Dynamic Type",
+  "logging": (ctx) => `${ctx.LOGGING_SYSTEM} 로깅 전략, 구조화 로깅`,
+};
+
+// 워크플로별 한줄 설명
+const WORKFLOW_DESC: Record<string, string> = {
+  "add-feature": "기능 추가 (도메인→데이터→UI 순서)",
+  "fix-bug": "버그 수정 (재현→원인→수정→회귀 테스트)",
+  "refactor": "리팩토링 (동작 변경 없이 구조 개선)",
+  "review": "코드 리뷰 (아키텍처·보안·성능 관점)",
+  "build": "빌드·배포 (빌드 실패 대응)",
+  "verify": "검증 (테스트 실행, 규칙 준수 확인)",
+};
+
 function buildTemplateContext(
   config: ProjectConfig,
   profileName: ProfileName,
@@ -109,28 +131,9 @@ function buildTemplateContext(
   workflows: string[],
   platforms: PlatformId[],
   profile: Profile,
-  rootDir?: string,
+  _rootDir?: string,
 ): TemplateContext {
-  const skillBullets = skills.map((s) => `- \`${s}\``).join("\n");
-
-  const workflowRouting = workflows
-    .map((w) => {
-      const descriptions: Record<string, string> = {
-        "add-feature": "새 기능 추가 또는 기존 플로우 확장",
-        "fix-bug": "버그 수정, 크래시, 회귀 복구",
-        refactor: "동작 유지하면서 구조 개선",
-        build: "빌드·테스트 검증",
-        review: "코드 리뷰",
-        verify: "자동 분석 결과 검증",
-      };
-      const desc = descriptions[w] ?? w;
-      return `- \`${w}\`: ${desc}. \`.hatchery/workflows/${w}.md\` 참조.`;
-    })
-    .join("\n");
-
-  const directoryTree = rootDir ? generateDirectoryTree(rootDir) : "";
-
-  return {
+  const ctx: TemplateContext = {
     PROJECT_NAME: config.project_name,
     PLATFORMS: platforms.join(", "),
     UI_FRAMEWORK: config.ui_framework,
@@ -149,12 +152,23 @@ function buildTemplateContext(
     TEST_COMMAND: config.test_command || "설정되지 않음",
     HARNESS_PROFILE: profileName,
     SELECTED_SKILLS: skills.join(", "),
-    SELECTED_SKILLS_BULLETS: skillBullets,
-    WORKFLOW_ROUTING: workflowRouting,
-    WORKFLOW_LIST: workflowRouting,
     PROFILE_GUIDANCE: profile.guidance ?? "",
-    DIRECTORY_TREE: directoryTree,
   };
+
+  // 스킬 설명 생성
+  ctx.SKILL_DESCRIPTIONS = skills.map((s) => {
+    const descFn = SKILL_DESC[s];
+    const desc = descFn ? descFn(ctx) : s;
+    return `- \`.hatchery/skills/${s}.md\` — ${desc}`;
+  }).join("\n");
+
+  // 워크플로 설명 생성
+  ctx.WORKFLOW_DESCRIPTIONS = workflows.map((w) => {
+    const desc = WORKFLOW_DESC[w] ?? w;
+    return `- \`.hatchery/workflows/${w}.md\` — ${desc}`;
+  }).join("\n");
+
+  return ctx;
 }
 
 function writeOutput(rootDir: string, relativePath: string, content: string): void {
