@@ -1,0 +1,19 @@
+name: basic
+description: Minimal setup for solo projects and MVPs.
+description_ko: 개인 프로젝트와 MVP에 맞춘 최소 구성.
+
+default_skills:
+  - architecture
+  - ui-rules
+  - testing
+
+flags:
+  strict_self_review: false
+  require_regression_tests: false
+  include_performance_guidance: false
+  include_security_privacy_emphasis: true
+
+guidance: |
+  - 간결한 구현을 우선한다.
+  - 테스트는 핵심 로직에만 집중한다.
+  - 프로세스 오버헤드를 최소화한다.

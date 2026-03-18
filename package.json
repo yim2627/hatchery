@@ -1,0 +1,52 @@
+{
+  "name": "hatchery",
+  "version": "0.1.0",
+  "description": "Multi-platform AI agent harness generator. Analyze codebases, detect platforms, generate rules and workflows for AI agents.",
+  "type": "module",
+  "bin": {
+    "hatchery": "./dist/bin/hatchery.js"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "start": "node dist/bin/hatchery.js",
+    "test": "vitest",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit"
+  },
+  "files": [
+    "dist",
+    "templates",
+    "profiles"
+  ],
+  "keywords": [
+    "ai",
+    "agent",
+    "harness",
+    "claude",
+    "codex",
+    "scaffold",
+    "ios",
+    "android",
+    "react",
+    "nextjs",
+    "monorepo"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "commander": "^12.1.0",
+    "@inquirer/prompts": "^7.0.0",
+    "yaml": "^2.6.0",
+    "fast-glob": "^3.3.0",
+    "chalk": "^5.3.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0",
+    "@types/node": "^22.0.0"
+  }
+}

@@ -1,0 +1,27 @@
+name: advanced
+description: Strict setup for complex apps and long-lived codebases.
+description_ko: 복잡한 앱과 장기 운영 코드베이스에 맞춘 엄격한 구성.
+
+default_skills:
+  - architecture
+  - ui-rules
+  - concurrency
+  - networking
+  - testing
+  - state-management
+  - logging
+
+flags:
+  strict_self_review: true
+  require_regression_tests: true
+  include_performance_guidance: true
+  include_security_privacy_emphasis: true
+  require_risk_summary: true
+  require_state_transition_thinking: true
+
+guidance: |
+  - 명시적 셀프 리뷰를 포함한다.
+  - 모든 버그 수정에 회귀 테스트를 추가한다.
+  - 비동기/권한 로직에서 상태 전이 리스크를 항상 호출한다.
+  - 각 변경에 대해 리스크 요약을 포함한다.
+  - 성능 영향을 고려하고 필요시 언급한다.

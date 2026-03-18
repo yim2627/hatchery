@@ -1,0 +1,21 @@
+name: intermediate
+description: Balanced default for product development.
+description_ko: 프로덕트 개발에 맞춘 균형 잡힌 기본 구성.
+
+default_skills:
+  - architecture
+  - ui-rules
+  - concurrency
+  - networking
+  - testing
+
+flags:
+  strict_self_review: true
+  require_regression_tests: true
+  include_performance_guidance: false
+  include_security_privacy_emphasis: true
+
+guidance: |
+  - 명시적 셀프 리뷰를 포함한다.
+  - 버그 수정 시 가능하면 회귀 테스트를 추가한다.
+  - 비동기 또는 권한 로직이 관련되면 상태 전이 리스크를 호출한다.
