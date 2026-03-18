@@ -40,27 +40,178 @@ Hatchery는 이 네 가지를 자동화한다.
 npm install -g @limjiseong/hatchery
 ```
 
-## 사용법
+## 빠른 시작
 
 ```bash
-# 프로젝트 분석만 (결과 확인)
-hatchery analyze --target /path/to/project
-
-# 온보딩 (분석 → CLAUDE.md + 스킬 문서 생성)
+# 1. 프로젝트 온보딩 (최초 1회)
 hatchery onboard --target /path/to/project
 
-# 동적 컨텍스트 재생성
+# 2. Claude Code로 작업
+# (생성된 CLAUDE.md가 에이전트에게 프로젝트 컨텍스트를 제공)
+
+# 3. 작업 후 규칙 준수 검증
+hatchery audit --target /path/to/project
+
+# 4. 코드 변경 후 config만 갱신
+hatchery sync --target /path/to/project
+```
+
+## 커맨드
+
+### `analyze` — 프로젝트 분석
+
+파일을 생성하지 않고 분석 결과만 출력한다. 온보딩 전 확인용.
+
+```bash
+hatchery analyze --target /path/to/project
+```
+
+출력 예시:
+```
+감지된 플랫폼: ios (100%)
+아키텍처 추정: MVVM + Repository
+추천 프로필: intermediate
+추천 스킬: architecture, ui-rules, concurrency, networking, testing, state-management
+```
+
+### `onboard` — 온보딩
+
+프로젝트를 분석하고 `CLAUDE.md`, 스킬 문서, 워크플로를 생성한다.
+
+```bash
+hatchery onboard --target /path/to/project
+hatchery onboard --target /path/to/project --profile advanced
+hatchery onboard --target /path/to/project --skills "architecture,testing" --platform "ios"
+hatchery onboard --target /path/to/project --non-interactive --force
+```
+
+| 옵션 | 설명 |
+|---|---|
+| `--target` | 대상 프로젝트 경로 (기본: 현재 디렉토리) |
+| `--profile` | 프로필 지정 (`basic` / `intermediate` / `advanced`) |
+| `--skills` | 스킬 목록 직접 지정 (쉼표 구분) |
+| `--workflows` | 워크플로 목록 직접 지정 (쉼표 구분) |
+| `--platform` | 플랫폼 직접 지정 (쉼표 구분) |
+| `--non-interactive` | 대화 없이 자동 진행 |
+| `--force` | 기존 설정 덮어쓰기 |
+
+### `sync` — 설정 동기화
+
+프로젝트를 재분석하여 `config.json`만 갱신한다. 스킬, 워크플로, `CLAUDE.md`는 건드리지 않는다.
+코드가 변경된 후 분석 결과를 최신 상태로 유지할 때 사용한다.
+
+```bash
+hatchery sync --target /path/to/project
+hatchery sync --target /path/to/project --workspace apps/patient-app
+```
+
+변경된 필드가 있으면 diff를 출력한다:
+```
+변경된 필드 (2개):
+
+  persistence_layer_name
+    - CoreData
+    + SwiftData
+  architecture_style
+    - MVC
+    + MVVM + Repository
+```
+
+### `render` — 동적 컨텍스트 생성
+
+현재 상태와 작업 목적에 맞춰 에이전트 컨텍스트를 재생성한다.
+
+```bash
+hatchery render --target /path/to/project
 hatchery render --target /path/to/project --workflow add-feature
 hatchery render --target /path/to/project --max-tokens 4000
+hatchery render --target /path/to/project --journal 5
+hatchery render --target /path/to/project --workspace apps/web
+```
 
-# 규칙 준수 검증
-hatchery audit --target /path/to/project --since HEAD~1
+| 옵션 | 설명 |
+|---|---|
+| `--workflow` | 특정 워크플로에 집중한 컨텍스트 생성 |
+| `--max-tokens` | 토큰 예산 제한 |
+| `--journal` | 최근 N개 작업 이력 포함 |
+| `--workspace` | 모노레포 워크스페이스 경로 |
 
-# 작업 기록
-hatchery journal log "로그인 기능 추가"
+### `audit` — 규칙 준수 검증
+
+활성 스킬의 규칙을 기준으로 코드를 검사한다.
+
+```bash
+hatchery audit --target /path/to/project
+hatchery audit --target /path/to/project --since HEAD~3
+```
+
+| 옵션 | 설명 |
+|---|---|
+| `--since` | Git ref 이후 변경된 파일만 검사 (예: `HEAD~1`, `main`) |
+
+출력 예시:
+```
+ERROR (2개):
+  Sources/Model/Item.swift:12 — SwiftData @Model 클래스는 @MainActor 격리를 권장합니다.
+  Sources/Service/API.swift:45 — async 컨텍스트에서 세마포어 사용은 데드락을 유발합니다.
+
+WARNING (3개):
+  Sources/View/HomeView.swift:89 — Force unwrap(!) 사용을 최소화하세요.
+  ...
+
+검사 파일: 248개, 통과: 19개, 위반: 5개
+```
+
+감지 가능한 규칙:
+
+| 카테고리 | 규칙 예시 |
+|---|---|
+| architecture | View에서 직접 네트워킹, 하드코딩 시크릿, URL에 API 키 포함 |
+| concurrency | `Task.detached` 남용, 세마포어 데드락, `DispatchGroup` 레거시 |
+| testing | force unwrap, force try |
+| ui-rules | `ObservableObject` → `@Observable` 마이그레이션, `NavigationView` deprecated |
+| networking | 하드코딩 URL |
+| logging | `NSLog` → OSLog |
+| state-management | SwiftData `@MainActor` 누락, `ModelContext` 백그라운드 사용, predicate 없는 fetch 등 7개 |
+
+### `skill` — 스킬 관리
+
+```bash
+# 사용 가능한 스킬 목록
+hatchery skill list --target /path/to/project
 
 # 커스텀 스킬 생성
-hatchery skill create our-design-system
+hatchery skill create our-design-system --target /path/to/project
+```
+
+### `workflow` — 워크플로 관리
+
+```bash
+# 워크플로 목록
+hatchery workflow list --target /path/to/project
+
+# 워크플로 내용 출력
+hatchery workflow print add-feature --target /path/to/project
+
+# 추가 워크플로 활성화
+hatchery workflow scaffold deploy monitoring --target /path/to/project
+```
+
+### `journal` — 작업 이력
+
+에이전트 작업 이력을 기록하고 다음 세션의 컨텍스트로 활용한다.
+
+```bash
+# 작업 기록
+hatchery journal log "로그인 기능 추가" --target /path/to/project
+hatchery journal log "API 에러 핸들링 개선" --files "Sources/API.swift,Sources/Error.swift"
+
+# 이력 조회
+hatchery journal list --target /path/to/project
+hatchery journal show <id> --target /path/to/project
+
+# 에이전트 컨텍스트로 출력
+hatchery journal context --target /path/to/project
 ```
 
 ## 생성 파일
@@ -68,12 +219,33 @@ hatchery skill create our-design-system
 ```
 CLAUDE.md                        ← Claude Code 진입점
 .hatchery/
-  config.json                    ← 자동 분석 결과
-  state.json                     ← 스킬·워크플로 상태
+  config.json                    ← 자동 분석 결과 (프로젝트 메타데이터)
+  state.json                     ← 온보딩 상태 (프로필, 스킬, 플랫폼)
   context.md                     ← 동적 에이전트 컨텍스트
   skills/                        ← base + platform 합성 스킬
   workflows/                     ← 작업별 실행 가이드
   journal/                       ← 작업 이력
+```
+
+### config.json 예시
+
+```json
+{
+  "project_name": "MyApp",
+  "platforms": ["ios"],
+  "ui_framework": "SwiftUI",
+  "architecture_style": "MVVM + Repository",
+  "min_version": "iOS 17.0",
+  "package_manager": "Swift Package Manager",
+  "project_generator": "Xcode",
+  "test_framework": "Swift Testing",
+  "lint_tools": "SwiftLint",
+  "network_layer_name": "Moya",
+  "persistence_layer_name": "SwiftData",
+  "logging_system": "OSLog",
+  "build_command": "xcodebuild -scheme MyApp build",
+  "test_command": "xcodebuild test -scheme MyApp"
+}
 ```
 
 ## 자동 감지
@@ -91,21 +263,69 @@ CLAUDE.md                        ← Claude Code 진입점
 | 권한 | 카메라, 위치, HealthKit 등 |
 | 빌드 | xcodebuild, swift build, npm run build 등 |
 
+## 프로필
+
+프로젝트 복잡도에 따라 3단계 프로필을 제공한다. 분석 결과에 따라 자동 추천되며, `--profile`로 직접 지정할 수도 있다.
+
+| 프로필 | 대상 | 기본 스킬 | 주요 특징 |
+|---|---|---|---|
+| **basic** | 개인 프로젝트, MVP | architecture, ui-rules, testing | 간결한 구현 우선, 최소 프로세스 |
+| **intermediate** | 프로덕트 개발 | + concurrency, networking | 셀프 리뷰, 회귀 테스트, 상태 전이 리스크 |
+| **advanced** | 복잡한 앱, 장기 운영 | + state-management, logging | 리스크 요약, 성능 가이드, 전체 스킬 활성화 |
+
 ## 스킬 시스템
 
 각 스킬은 `_base.md`(공통) + `{platform}.md`(특화)를 합성한다.
 
-빌트인: architecture, ui-rules, concurrency, networking, testing, state-management, accessibility, logging
+### 빌트인 스킬
+
+| 스킬 | 설명 | 플랫폼 |
+|---|---|---|
+| **architecture** | 레이어 분리, 의존성 방향, 디자인 패턴 | iOS, Web |
+| **ui-rules** | UI 컴포넌트 규칙, Property Wrapper 선택, 네비게이션 | iOS, Web |
+| **concurrency** | 비동기 처리, actor 격리, 데드락 방지 | iOS, Web |
+| **networking** | API 클라이언트 설계, 에러 처리, 인증 | iOS, Web |
+| **testing** | 테스트 전략, 모킹, 커버리지 | iOS, Web |
+| **state-management** | 상태 관리 패턴, SwiftData/CoreData, 전역 상태 | iOS, Web |
+| **accessibility** | 접근성 규칙, VoiceOver, Dynamic Type | iOS, Web |
+| **logging** | 로깅 전략, OSLog, 구조화 로깅 | iOS, Web |
+
+각 스킬은 `references/` 디렉토리에 패턴·안티패턴 레퍼런스를 포함한다.
 
 `hatchery skill create`로 팀 전용 커스텀 스킬을 추가할 수 있다.
+
+## 워크플로
+
+작업 유형별 실행 가이드를 제공한다. `render --workflow`로 해당 워크플로에 집중한 컨텍스트를 생성할 수 있다.
+
+| 워크플로 | 설명 |
+|---|---|
+| **add-feature** | 새 기능 추가 |
+| **fix-bug** | 버그 수정 |
+| **refactor** | 코드 리팩토링 |
+| **review** | 코드 리뷰 |
+| **build** | 빌드 및 배포 |
+| **verify** | 검증 및 테스트 |
 
 ## 모노레포
 
 워크스페이스를 자동 감지하고, 각각 독립된 컨텍스트를 생성한다.
 
 ```bash
+hatchery onboard --target /path/to/monorepo
 hatchery render --workspace apps/patient-app
+hatchery sync --workspace apps/web
 ```
+
+## 지원 플랫폼
+
+- iOS (SwiftUI / UIKit)
+- React
+- Next.js
+- Vue
+- Expo / React Native
+
+> Android는 현재 지원하지 않는다.
 
 ## 라이선스
 
