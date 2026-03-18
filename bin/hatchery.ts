@@ -7,6 +7,7 @@ import { registerAudit } from "../src/cli/commands/audit.js";
 import { registerSkill } from "../src/cli/commands/skill.js";
 import { registerWorkflow } from "../src/cli/commands/workflow.js";
 import { registerJournal } from "../src/cli/commands/journal.js";
+import { registerSync } from "../src/cli/commands/sync.js";
 
 const program = new Command();
 
@@ -23,5 +24,6 @@ registerAudit(program);
 registerSkill(program);
 registerWorkflow(program);
 registerJournal(program);
+registerSync(program);
 
 program.parse();

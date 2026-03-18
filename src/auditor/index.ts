@@ -197,6 +197,72 @@ const RULES: AuditRule[] = [
     message: "`NSLog` 대신 `os.Logger`(OSLog)를 사용하세요.",
     fileFilter: "**/*.swift",
   },
+
+  // ─── state-management (SwiftData) ───
+
+  {
+    skill: "state-management",
+    name: "swiftdata-mainactor-missing",
+    severity: "error",
+    platforms: ["ios"],
+    pattern: /@Model\s*(final\s+)?class/,
+    message: "SwiftData @Model 클래스는 @MainActor 격리를 권장합니다. 클래스 선언 위에 @MainActor를 추가하세요.",
+    fileFilter: "**/*.swift",
+  },
+  {
+    skill: "state-management",
+    name: "swiftdata-model-context-background",
+    severity: "error",
+    platforms: ["ios"],
+    pattern: /Task\s*\{[^}]*ModelContext/,
+    message: "ModelContext는 생성된 actor 컨텍스트에서만 사용해야 합니다. 백그라운드 Task에서 직접 사용하지 마세요.",
+    fileFilter: "**/*.swift",
+  },
+  {
+    skill: "state-management",
+    name: "swiftdata-force-unwrap-fetch",
+    severity: "warning",
+    platforms: ["ios"],
+    pattern: /try!\s*.*(?:\.fetch|FetchDescriptor)/,
+    message: "SwiftData fetch에서 `try!` 사용은 런타임 크래시를 유발합니다. `do-catch`를 사용하세요.",
+    fileFilter: "**/*.swift",
+  },
+  {
+    skill: "state-management",
+    name: "swiftdata-no-predicate",
+    severity: "warning",
+    platforms: ["ios"],
+    pattern: /FetchDescriptor<\w+>\(\s*\)/,
+    message: "predicate 없는 FetchDescriptor는 전체 데이터를 로드합니다. 성능을 위해 predicate 또는 fetchLimit를 추가하세요.",
+    fileFilter: "**/*.swift",
+  },
+  {
+    skill: "state-management",
+    name: "swiftdata-cascade-delete",
+    severity: "info",
+    platforms: ["ios"],
+    pattern: /\.cascade/,
+    message: "cascade 삭제 규칙은 연관 데이터를 모두 삭제합니다. 의도적으로 사용하는지 확인하세요.",
+    fileFilter: "**/*.swift",
+  },
+  {
+    skill: "state-management",
+    name: "swiftdata-unique-missing",
+    severity: "info",
+    platforms: ["ios"],
+    pattern: /@Model[\s\S]*var\s+id\s*:\s*String/,
+    message: "String 타입 id 필드에 `@Attribute(.unique)` 적용을 검토하세요.",
+    fileFilter: "**/*.swift",
+  },
+  {
+    skill: "state-management",
+    name: "swiftdata-modelcontainer-multiple",
+    severity: "warning",
+    platforms: ["ios"],
+    pattern: /ModelContainer\s*\(/,
+    message: "ModelContainer는 앱에서 하나만 생성하는 것을 권장합니다. 중복 생성을 확인하세요.",
+    fileFilter: "**/*.swift",
+  },
 ];
 
 export async function audit(

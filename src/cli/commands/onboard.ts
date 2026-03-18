@@ -106,7 +106,7 @@ export function registerOnboard(program: Command) {
     });
 }
 
-function buildProjectConfig(analysis: any, platforms: PlatformId[], rootDir: string): ProjectConfig {
+export function buildProjectConfig(analysis: any, platforms: PlatformId[], rootDir: string): ProjectConfig {
   return {
     project_name: inferProjectName(rootDir),
     platforms,
