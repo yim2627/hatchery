@@ -114,14 +114,14 @@ const SKILL_DESC: Record<string, (ctx: TemplateContext) => string> = {
   "logging": (ctx) => `${ctx.LOGGING_SYSTEM} 로깅 전략, 구조화 로깅`,
 };
 
-// 워크플로별 한줄 설명
+// 워크플로별 트리거 조건 + 한줄 설명
 const WORKFLOW_DESC: Record<string, string> = {
-  "add-feature": "기능 추가 (도메인→데이터→UI 순서)",
-  "fix-bug": "버그 수정 (재현→원인→수정→회귀 테스트)",
-  "refactor": "리팩토링 (동작 변경 없이 구조 개선)",
-  "review": "코드 리뷰 (아키텍처·보안·성능 관점)",
-  "build": "빌드·배포 (빌드 실패 대응)",
-  "verify": "검증 (테스트 실행, 규칙 준수 확인)",
+  "add-feature": "새 기능을 추가하거나 기존 플로우를 확장할 때. 도메인→데이터→UI 순서",
+  "fix-bug": "버그, 크래시, 회귀를 수정할 때. 재현→원인→수정→회귀 테스트",
+  "refactor": "동작 변경 없이 구조를 개선할 때",
+  "review": "코드 리뷰를 수행할 때. 아키텍처·보안·성능 관점",
+  "build": "빌드 실패를 해결하거나 배포할 때",
+  "verify": "테스트 실행 또는 규칙 준수를 확인할 때",
 };
 
 function buildTemplateContext(
