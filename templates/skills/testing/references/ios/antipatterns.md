@@ -64,6 +64,8 @@ func testFetchUser() async throws {
 }
 ```
 
+**WHY:** 실제 API를 호출하면 서버 장애, 네트워크 불안정, 레이트 리밋으로 테스트가 무작위로 실패한다. 테스트는 외부 상태에 의존하지 않아야 한다.
+
 ### C2. 테스트 간 상태 공유 — 실행 순서에 따라 결과 달라짐
 
 ```swift
@@ -100,6 +102,8 @@ class UserServiceTests: XCTestCase {
 }
 ```
 
+**WHY:** 테스트 A가 설정한 static 변수를 테스트 B가 사용하면, A가 먼저 실행되어야만 B가 통과한다. 병렬 실행이나 순서 변경 시 의미 없는 실패가 발생한다.
+
 ### C3. 구현 세부사항 테스트 — 리팩토링하면 깨짐
 
 ```swift
@@ -118,6 +122,8 @@ func testLoadProfile() async {
 }
 ```
 
+**WHY:** 내부 구현(호출 순서, 메서드명)을 테스트하면 리팩토링할 때마다 테스트가 깨진다. 최종 결과만 검증하면 내부를 자유롭게 바꿀 수 있다.
+
 ### C4. force unwrap으로 테스트 크래시
 
 ```swift
@@ -135,6 +141,8 @@ func testParsing() throws {
     XCTAssertEqual(user.name, "John")
 }
 ```
+
+**WHY:** `try!`로 크래시하면 "어떤 값이 nil이었는지" 알 수 없다. `XCTUnwrap`은 실패 위치와 메시지를 명확히 보여준다.
 
 ---
 
@@ -164,6 +172,8 @@ func testCheckout() async {
 }
 ```
 
+**WHY:** Mock이 4개 이상이면 테스트 대상 클래스의 의존성이 너무 많다는 설계 신호다. Mock 구현 자체에 버그가 있으면 테스트가 잘못된 결과를 보고한다.
+
 ### W2. 비동기 테스트에서 sleep 사용
 
 ```swift
@@ -185,6 +195,8 @@ func testDebounce() async throws {
 }
 ```
 
+**WHY:** `sleep(1)`은 CI 환경에서 타이밍 차이로 flaky 테스트의 주범이다. 로컬에서 통과하고 CI에서 실패하는 테스트는 신뢰를 잃는다.
+
 ### W3. 테스트 이름이 의미 없음
 
 ```swift
@@ -197,6 +209,8 @@ func test1() { ... }
 func test_fetchUser_whenNetworkFails_setsErrorState() { ... }
 func test_login_withInvalidEmail_showsValidationError() { ... }
 ```
+
+**WHY:** 테스트가 실패했을 때 `testUser`만으로는 무엇이 깨졌는지 알 수 없다. 이름에 조건과 기대 결과가 있으면 로그만 보고 문제를 파악할 수 있다.
 
 ### W4. happy path만 테스트
 
@@ -220,6 +234,8 @@ func testFetchUser_emptyResponse() async {
     // 빈 응답에 대한 기대 동작 검증
 }
 ```
+
+**WHY:** 실제 유저는 네트워크 오류, 빈 응답, 잘못된 입력을 보낸다. 성공 케이스만 테스트하면 프로덕션에서 처음 보는 크래시가 발생한다.
 
 ---
 
@@ -347,3 +363,12 @@ struct FakeUserRepository: UserRepositoryProtocol {
     }
 }
 ```
+
+---
+
+## 리소스
+
+- [Swift Testing — Apple Developer Documentation](https://developer.apple.com/documentation/testing)
+- [WWDC24: Meet Swift Testing](https://developer.apple.com/videos/play/wwdc2024/10179/)
+- [WWDC24: Go further with Swift Testing](https://developer.apple.com/videos/play/wwdc2024/10195/)
+- [XCTest — Apple Developer Documentation](https://developer.apple.com/documentation/xctest)

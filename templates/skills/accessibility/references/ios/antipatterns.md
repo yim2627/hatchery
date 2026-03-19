@@ -58,6 +58,8 @@ Button(action: { toggleFavorite() }) {
 .accessibilityLabel(isFavorite ? "즐겨찾기 해제" : "즐겨찾기 추가")
 ```
 
+**WHY:** 레이블이 없으면 VoiceOver가 "버튼"만 읽는다. 시각 장애인은 닫기인지, 삭제인지, 설정인지 구분할 수 없어서 앱을 사용할 수 없다.
+
 ### C2. 정보성 이미지에 설명 없음
 
 ```swift
@@ -77,6 +79,8 @@ AsyncImage(url: product.imageURL)
 Image("background_pattern")
     .accessibilityHidden(true)
 ```
+
+**WHY:** 이미지가 전달하는 정보(배너 내용, 제품 사진)를 텍스트로 설명하지 않으면 시각 장애인에게는 해당 콘텐츠가 존재하지 않는 것과 같다.
 
 ### C3. 하드코딩된 폰트 크기 — Dynamic Type 무시
 
@@ -100,6 +104,8 @@ Text("커스텀")
     .font(.custom("Pretendard-Bold", size: 24, relativeTo: .title))
 ```
 
+**WHY:** 저시력 유저나 고령자는 시스템 설정에서 글꼴 크기를 키워 사용한다. 하드코딩 크기는 이 설정을 무시하여 텍스트가 읽을 수 없을 정도로 작게 유지된다.
+
 ### C4. 터치 타겟이 너무 작음
 
 ```swift
@@ -121,6 +127,8 @@ Image(systemName: "info.circle")
     .contentShape(Rectangle().size(width: 44, height: 44))
 ```
 
+**WHY:** Apple HIG는 최소 44x44pt 터치 타겟을 요구한다. 이보다 작으면 손떨림이 있는 유저나 큰 손가락을 가진 유저가 정확히 탭할 수 없다.
+
 ---
 
 ## WARNING — 접근성 저하
@@ -139,6 +147,8 @@ HStack {
 }
 .foregroundStyle(status == .error ? .red : .green)
 ```
+
+**WHY:** 전체 남성의 약 8%가 색각 이상이다. 빨강/초록만으로 성공/실패를 구분하면 이 유저들에게 동일한 색으로 보인다.
 
 ### W2. VoiceOver 탐색 순서가 시각적 순서와 다름
 
@@ -161,6 +171,8 @@ ZStack {
 }
 ```
 
+**WHY:** ZStack에서 VoiceOver 탐색 순서는 코드 순서를 따르지만 시각적 순서와 다를 수 있다. 유저가 혼란스러운 순서로 요소를 탐색하게 된다.
+
 ### W3. 접근성 요소를 그룹화하지 않음
 
 ```swift
@@ -180,6 +192,8 @@ VStack {
 .accessibilityElement(children: .combine)
 // VoiceOver: "홍길동, 25세, 서울" → 1번 스와이프
 ```
+
+**WHY:** "이름", "나이", "도시"를 각각 읽으면 3번 스와이프가 필요하다. 리스트가 50행이면 150번 스와이프. 그룹화하면 50번으로 줄어든다.
 
 ### W4. 상태 변경을 VoiceOver에 알리지 않음
 
@@ -203,6 +217,8 @@ func load() async {
 }
 ```
 
+**WHY:** VoiceOver 유저는 화면 변경을 볼 수 없다. 로딩이 끝나도 알림이 없으면 여전히 로딩 중이라고 생각하고 기다린다.
+
 ### W5. 커스텀 컨트롤의 접근성 trait 누락
 
 ```swift
@@ -223,6 +239,8 @@ HStack {
 .accessibilityLabel("즐겨찾기")
 .accessibilityValue(isFavorite ? "활성화됨" : "비활성화됨")
 ```
+
+**WHY:** onTapGesture로 만든 뷰는 VoiceOver가 일반 텍스트로 인식한다. `.isButton` trait이 없으면 "이중 탭하여 활성화" 힌트가 나오지 않아서 탭 가능한지 알 수 없다.
 
 ---
 
@@ -302,3 +320,13 @@ AccessibilityNotification.Announcement("저장되었습니다").post()
 
 AccessibilityNotification.ScreenChanged(nil).post()
 ```
+
+---
+
+## 리소스
+
+- [Accessibility — Apple Developer Documentation](https://developer.apple.com/documentation/accessibility)
+- [SwiftUI Accessibility Modifiers](https://developer.apple.com/documentation/swiftui/view-accessibility)
+- [WWDC23: Build accessible apps with SwiftUI and UIKit](https://developer.apple.com/videos/play/wwdc2023/10036/)
+- [WWDC21: SwiftUI Accessibility: Beyond the basics](https://developer.apple.com/videos/play/wwdc2021/10119/)
+- [Human Interface Guidelines: Accessibility](https://developer.apple.com/design/human-interface-guidelines/accessibility)

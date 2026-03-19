@@ -54,6 +54,8 @@ enum APIConfig {
 
 탐지: 문자열 리터럴에 `key=`, `token=`, `secret`, `sk_live`, `sk_test` 포함.
 
+**WHY:** 소스 코드에 하드코딩된 시크릿은 Git 히스토리에 영구적으로 남는다. 공개 저장소는 물론 비공개 저장소도 유출 시 즉시 악용된다.
+
 ### C2. 에러 무시 — 실패해도 모름
 
 ```swift
@@ -90,6 +92,8 @@ func fetchUser() async {
 }
 ```
 
+**WHY:** 에러를 삼키면 유저는 로딩이 끝나지 않는 빈 화면을 보게 된다. `try!`는 프로덕션에서 크래시, 빈 catch는 무한 로딩을 유발한다.
+
 ### C3. View에서 직접 URLSession 호출
 
 ```swift
@@ -123,6 +127,8 @@ struct UserView: View {
 }
 ```
 
+**WHY:** View가 네트워킹을 직접 수행하면 같은 API 호출이 여러 View에 중복되고, 캐싱/에러 처리 로직이 분산된다. Repository 패턴으로 분리하면 테스트와 재사용이 용이하다.
+
 ### C4. HTTP 응답 상태 코드 무시
 
 ```swift
@@ -149,6 +155,8 @@ default:
 }
 ```
 
+**WHY:** URLSession은 4xx/5xx를 에러로 throw하지 않는다. 상태 코드를 무시하면 에러 응답 바디를 정상 데이터로 디코딩하여 의미 없는 에러 메시지가 표시된다.
+
 ---
 
 ## WARNING — 성능·유지보수 문제
@@ -171,6 +179,8 @@ func loadDashboard() async throws {
     let (p, ps, n) = try await (profile, posts, notifications)
 }
 ```
+
+**WHY:** 3개 독립 요청이 각 500ms면 순차 실행 시 1.5초, 병렬 실행 시 500ms다. 대시보드처럼 여러 데이터를 동시에 로드하는 화면에서 차이가 크다.
 
 ### W2. 재시도 없는 일회성 요청
 
@@ -199,6 +209,8 @@ func fetchData(maxRetries: Int = 3) async throws -> Data {
 }
 ```
 
+**WHY:** 일시적 네트워크 불안정(터널 진입, Wi-Fi 전환)은 재시도로 해결될 수 있다. 멱등 GET 요청은 재시도해도 부작용이 없다.
+
 ### W3. JSONDecoder를 매번 새로 생성
 
 ```swift
@@ -221,6 +233,8 @@ enum JSONCoders {
 }
 ```
 
+**WHY:** 매번 새 인스턴스를 생성하면 strategy 설정이 파일마다 달라질 수 있고, snake_case 변환 같은 공통 설정이 누락될 위험이 있다.
+
 ### W4. URLSession 설정을 기본값으로 방치
 
 ```swift
@@ -234,6 +248,8 @@ configuration.timeoutIntervalForResource = 60
 configuration.waitsForConnectivity = true
 let session = URLSession(configuration: configuration)
 ```
+
+**WHY:** 기본 타임아웃 60초는 모바일 환경에서 과도하다. 유저가 1분간 로딩 화면을 보고 있는 것은 나쁜 UX다.
 
 ---
 
@@ -329,3 +345,13 @@ enum Endpoint {
 // 사용
 let user: User = try await apiClient.request(.getUser(id: "123"))
 ```
+
+---
+
+## 리소스
+
+- [URLSession — Apple Developer Documentation](https://developer.apple.com/documentation/foundation/urlsession)
+- [Fetching website data into memory](https://developer.apple.com/documentation/foundation/url_loading_system/fetching_website_data_into_memory)
+- [WWDC21: Use async/await with URLSession](https://developer.apple.com/videos/play/wwdc2021/10095/)
+- [WWDC22: Reduce networking delays for a more responsive app](https://developer.apple.com/videos/play/wwdc2022/10078/)
+- [Encoding and Decoding Custom Types](https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types)
