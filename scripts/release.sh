@@ -33,7 +33,7 @@ npm run build
 # 5. 커밋 + 태그 + 푸시
 git add package.json CLAUDE.md
 git commit -m "release: v${VERSION_NUM}"
-git tag "v${VERSION_NUM}"
+git tag -a "v${VERSION_NUM}" -m "release: v${VERSION_NUM}"
 git push origin main
 git push origin "v${VERSION_NUM}"
 
