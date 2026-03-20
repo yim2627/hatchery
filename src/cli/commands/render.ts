@@ -3,7 +3,8 @@ import fs from "node:fs";
 import path from "node:path";
 import chalk from "chalk";
 import { loadState } from "../../state/index.js";
-import { buildContext } from "../../generator/context-builder.js";
+import { buildContext, buildSpecSection } from "../../generator/context-builder.js";
+import { renderTemplateFile, getTemplatesDir } from "../../generator/renderer.js";
 import { loadProfile } from "../../generator/index.js";
 import type { ProjectConfig, TemplateContext } from "../../types/index.js";
 
@@ -51,6 +52,13 @@ export function registerRender(program: Command) {
       fs.mkdirSync(path.dirname(outPath), { recursive: true });
       fs.writeFileSync(outPath, rendered);
 
+      // CLAUDE.md도 재생성 (스펙 섹션 반영)
+      const claudeTemplatePath = path.join(getTemplatesDir(), "CLAUDE.md");
+      if (fs.existsSync(claudeTemplatePath)) {
+        const claudeMd = renderTemplateFile(claudeTemplatePath, ctx);
+        fs.writeFileSync(path.join(rootDir, "CLAUDE.md"), claudeMd);
+      }
+
       const tokenEstimate = Math.round(rendered.length / 4);
       console.log(chalk.green(`✓ 컨텍스트 재생성 완료: ${path.relative(rootDir, outPath)}`));
       console.log(`  토큰 추정: ~${tokenEstimate.toLocaleString()}`);
@@ -85,5 +93,6 @@ function buildQuickContext(config: ProjectConfig, state: any, profile: any): Tem
     WORKFLOW_ROUTING: state.workflows.map((w: string) => `- \`${w}\``).join("\n"),
     WORKFLOW_LIST: state.workflows.map((w: string) => `- \`${w}\``).join("\n"),
     PROFILE_GUIDANCE: profile.guidance ?? "",
+    SPEC_SECTION: buildSpecSection(state.specs ?? []),
   };
 }

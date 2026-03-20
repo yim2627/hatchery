@@ -112,6 +112,7 @@ export interface HatcheryState {
   platforms: PlatformId[];
   configPath: string;
   contextPath: string;
+  specs?: string[];
   createdAt: string;
   updatedAt: string;
 }

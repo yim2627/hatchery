@@ -8,6 +8,7 @@ import { registerSkill } from "../src/cli/commands/skill.js";
 import { registerWorkflow } from "../src/cli/commands/workflow.js";
 import { registerJournal } from "../src/cli/commands/journal.js";
 import { registerSync } from "../src/cli/commands/sync.js";
+import { registerSpec } from "../src/cli/commands/spec.js";
 
 const program = new Command();
 
@@ -25,5 +26,6 @@ registerSkill(program);
 registerWorkflow(program);
 registerJournal(program);
 registerSync(program);
+registerSpec(program);
 
 program.parse();

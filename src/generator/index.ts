@@ -140,6 +140,9 @@ function buildTemplateContext(
   // 워크플로 인라인 절차 생성
   ctx.WORKFLOW_INLINE = buildWorkflowInline(workflows);
 
+  // 스펙 섹션 (스펙이 없으면 빈 문자열)
+  ctx.SPEC_SECTION = "";
+
   return ctx;
 }
 

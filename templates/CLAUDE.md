@@ -13,7 +13,7 @@
 1. 작업과 관련된 스킬 문서를 읽는다:
 {{SKILL_DESCRIPTIONS}}
 
-2. 작업이 아래에 매칭되면 해당 절차를 따른다:
+{{SPEC_SECTION}}작업이 아래에 매칭되면 해당 절차를 따른다:
 
 {{WORKFLOW_INLINE}}
 

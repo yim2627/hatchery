@@ -80,6 +80,12 @@ export function buildWorkflowInline(workflows: string[]): string {
   }).join("\n\n");
 }
 
+export function buildSpecSection(specs: string[]): string {
+  if (!specs || specs.length === 0) return "";
+  const specLines = specs.map((s) => `- \`.hatchery/specs/${s}\``).join("\n");
+  return `2. 프로젝트 기획서/스펙 문서를 읽는다:\n${specLines}\n\n`;
+}
+
 export function buildSkillDescriptions(skills: string[], ctx: TemplateContext): string {
   return skills.map((s) => {
     const descFn = SKILL_DESC[s];
@@ -108,6 +114,9 @@ function enrichContext(context: TemplateContext, state: HatcheryState): Template
   }
   if (!enriched.WORKFLOW_INLINE) {
     enriched.WORKFLOW_INLINE = buildWorkflowInline(state.workflows);
+  }
+  if (!enriched.SPEC_SECTION) {
+    enriched.SPEC_SECTION = buildSpecSection(state.specs ?? []);
   }
   return enriched;
 }
@@ -153,7 +162,17 @@ export function buildContext(opts: ContextOptions): string {
     }
   }
 
-  // 4. Task Journal (선택)
+  // 4. 스펙 문서 번들링
+  const specs = state.specs ?? [];
+  for (const specFile of specs) {
+    const specPath = path.join(rootDir, ".hatchery", "specs", specFile);
+    if (fs.existsSync(specPath)) {
+      const specContent = fs.readFileSync(specPath, "utf-8");
+      sections.push(wrapSection(`spec: ${specFile}`, specContent));
+    }
+  }
+
+  // 5. Task Journal (선택)
   if (includeJournal && includeJournal > 0) {
     const journalCtx = entriesToContext(rootDir, includeJournal);
     if (journalCtx) {
