@@ -183,6 +183,26 @@ WARNING (3개):
 | logging | `NSLog` → OSLog |
 | state-management | SwiftData `@MainActor` 누락, `ModelContext` 백그라운드 사용, predicate 없는 fetch 등 7개 |
 
+### `spec` — 기획서/스펙 문서 관리
+
+프로젝트 기획서, PRD, 설계 문서를 등록하여 에이전트 컨텍스트에 자동 포함시킨다.
+
+> 시나리오: PM이 기획서를 줬다. `spec add`로 등록하면, `render` 시 context.md에 기획서 전문이 번들링되고 CLAUDE.md에 참조가 추가된다. 에이전트가 기획 맥락을 파악한 상태로 작업을 시작한다.
+
+```bash
+# 기획서 등록
+hatchery spec add ./PRD.md --target /path/to/project
+
+# 등록된 스펙 목록
+hatchery spec list --target /path/to/project
+
+# 스펙 제거
+hatchery spec remove PRD.md --target /path/to/project
+
+# context.md + CLAUDE.md에 반영
+hatchery render --target /path/to/project
+```
+
 ### `skill` — 스킬 관리
 
 ```bash
@@ -233,6 +253,7 @@ CLAUDE.md                        ← Claude Code 진입점
   config.json                    ← 자동 분석 결과 (프로젝트 메타데이터)
   state.json                     ← 온보딩 상태 (프로필, 스킬, 플랫폼)
   context.md                     ← 동적 에이전트 컨텍스트
+  specs/                         ← 기획서/PRD/설계 문서
   skills/                        ← base + platform 합성 스킬
   workflows/                     ← 작업별 실행 가이드
   journal/                       ← 작업 이력
