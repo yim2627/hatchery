@@ -73,8 +73,9 @@ const DETECTION_RULES: DetectionRule[] = [
 
 // Priority: more specific platforms suppress generic ones
 const PLATFORM_SUPPRESSION: Record<string, PlatformId[]> = {
-  nextjs: ["react"],        // Next.js suppresses generic React
-  expo: ["react-native"],   // Expo suppresses generic RN
+  nextjs: ["react"],                // Next.js suppresses generic React
+  expo: ["react-native", "ios"],    // Expo suppresses generic RN and native iOS
+  "react-native": ["ios"],          // React Native suppresses native iOS
 };
 
 export async function detectPlatforms(rootDir: string): Promise<PlatformInfo[]> {
